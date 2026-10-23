@@ -49,7 +49,7 @@ function build(){
       if(!row.length)continue;
       const gap=row.length>1?Math.min((L-tot)/(row.length-1),fs*1.5):0;
       let x=a+(L-tot-gap*(row.length-1))/2;
-      for(const [w,ww] of row){items.push({t:w,x:x+ww/2,y,a:0.92+Math.random()*0.08});x+=ww+gap}
+      for(const [w,ww] of row){items.push({t:w,x:x+ww/2,y,a:0.92+Math.random()*0.08,phase:Math.random()*Math.PI*2,ampX:0.8+Math.random()*1.2,ampY:0.7+Math.random()*1.0,speed:0.001+Math.random()*0.0005});x+=ww+gap}
     }
   }
   items.forEach(it=>it.k=dist(it.x,it.y));
@@ -64,11 +64,18 @@ function frame(now){
   g.font=FS+"px system-ui,'Noto Sans',sans-serif";
   for(const it of items){
     const f=Math.min(1,(e-it.d)/600);if(f<=0)continue;
-    // Soft neon halo plus a bright pink-red core.
-    g.shadowColor="#ff245b";g.shadowBlur=Math.max(14,FS*2.4);
-    g.fillStyle="rgba(255,42,83,"+(f*it.a*0.62)+")";g.fillText(it.t,it.x,it.y);
-    g.shadowBlur=Math.max(1,FS*0.14);
-    g.fillStyle="rgba(255,145,158,"+(f*it.a)+")";g.fillText(it.t,it.x,it.y);
+    // Independent, restrained drift keeps phrases inside the heart while making them feel alive.
+    const dx=Math.sin(e*it.speed+it.phase)*it.ampX;
+    const dy=Math.cos(e*it.speed*0.83+it.phase*1.37)*it.ampY;
+    const px=it.x+dx,py=it.y+dy;
+    // Layered neon bloom with a bright pink-white text core.
+    g.save();g.globalCompositeOperation="lighter";
+    g.shadowColor="#ff174f";g.shadowBlur=Math.max(30,FS*3.2);
+    g.fillStyle="rgba(255,18,78,"+(f*it.a*0.52)+")";g.fillText(it.t,px,py);
+    g.shadowColor="#ff3b83";g.shadowBlur=Math.max(12,FS*1.25);
+    g.fillStyle="rgba(255,55,116,"+(f*it.a*0.76)+")";g.fillText(it.t,px,py);
+    g.restore();
+    g.fillStyle="rgba(255,222,234,"+(f*it.a)+")";g.fillText(it.t,px,py);
   }
   g.shadowBlur=0;
   requestAnimationFrame(frame);
